@@ -43,8 +43,10 @@
       this.productPaths = generatedBoard.paths;
       this.foundProducts = new Set();
       this.foundCells = new Set();
+      this.completedPaths = [];
       this.selection = [];
       this.selectionText = "";
+      this.selectionDirection = null;
       this.inputLocked = false;
       this.state = GAME_STATES.PLAYING;
       this.notify({ type: "game-started" });
@@ -67,8 +69,10 @@
       this.productPaths = {};
       this.foundProducts = new Set();
       this.foundCells = new Set();
+      this.completedPaths = [];
       this.selection = [];
       this.selectionText = "";
+      this.selectionDirection = null;
       this.inputLocked = false;
     }
 
@@ -86,10 +90,30 @@
         return;
       }
 
-      const previousCell = this.selection[this.selection.length - 1];
-      if (previousCell && !this.areAdjacent(previousCell, clickedCell)) {
-        this.failSelection(clickedCell, "請點擊上一格八方向相鄰的字母。");
-        return;
+      let nextDirection = this.selectionDirection;
+
+      if (this.selection.length === 1) {
+        const firstCell = this.selection[0];
+        if (!this.areAdjacent(firstCell, clickedCell)) {
+          this.failSelection(clickedCell, "第二格必須與第一格八方向相鄰。");
+          return;
+        }
+
+        nextDirection = {
+          row: clickedCell.row - firstCell.row,
+          column: clickedCell.column - firstCell.column
+        };
+      } else if (this.selection.length >= 2) {
+        const firstCell = this.selection[0];
+        const expectedCell = {
+          row: firstCell.row + this.selection.length * this.selectionDirection.row,
+          column: firstCell.column + this.selection.length * this.selectionDirection.column
+        };
+
+        if (clickedCell.row !== expectedCell.row || clickedCell.column !== expectedCell.column) {
+          this.failSelection(clickedCell, "方向已固定，後續字母必須沿同一直線選取。");
+          return;
+        }
       }
 
       const nextSelection = [...this.selection, clickedCell];
@@ -104,6 +128,7 @@
 
       this.selection = nextSelection;
       this.selectionText = nextText;
+      this.selectionDirection = nextDirection;
 
       const completedProduct = matchingPrefixes.find((product) => product.name === nextText);
       if (completedProduct) {
@@ -118,6 +143,7 @@
       const invalidPath = [...this.selection, clickedCell];
       this.selection = [];
       this.selectionText = "";
+      this.selectionDirection = null;
       this.inputLocked = true;
       this.notify({ type: "selection-error", invalidPath, message });
 
@@ -133,8 +159,13 @@
       const completedPath = this.selection.map((cell) => ({ ...cell }));
       this.foundProducts.add(product.name);
       completedPath.forEach((cell) => this.foundCells.add(this.cellKey(cell)));
+      this.completedPaths.push({
+        productName: product.name,
+        path: completedPath
+      });
       this.selection = [];
       this.selectionText = "";
+      this.selectionDirection = null;
 
       const isComplete = this.foundProducts.size === this.roundProducts.length;
       if (isComplete) {

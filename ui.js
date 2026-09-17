@@ -1,6 +1,9 @@
 (function () {
   "use strict";
 
+  const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+  const HIGHLIGHT_COLORS = ["yellow", "green", "blue", "red"];
+
   class GameUI {
     constructor(game) {
       this.game = game;
@@ -78,7 +81,7 @@
 
       if (event.type === "product-found") {
         this.errorCells.clear();
-        this.renderBoard(state);
+        this.renderBoard(state, false, event.product.name);
         this.elements.feedback.textContent = `找到 ${event.product.name}！`;
         this.animateFoundProduct(event.product.name, event.isComplete);
         return;
@@ -106,7 +109,7 @@
       }
     }
 
-    renderBoard(state, hasError = false) {
+    renderBoard(state, hasError = false, newestProductName = "") {
       const selectedKeys = new Set(state.selection.map((cell) => state.cellKey(cell)));
       const fragment = document.createDocumentFragment();
 
@@ -120,11 +123,11 @@
           cell.dataset.column = columnIndex;
           cell.setAttribute("role", "gridcell");
           cell.setAttribute("aria-label", `第 ${rowIndex + 1} 列，第 ${columnIndex + 1} 欄，字母 ${letter}`);
-          cell.textContent = letter;
+          const letterLabel = document.createElement("span");
+          letterLabel.className = "cell-letter";
+          letterLabel.textContent = letter;
+          cell.appendChild(letterLabel);
 
-          if (state.foundCells.has(key)) {
-            cell.classList.add("is-found");
-          }
           if (selectedKeys.has(key)) {
             cell.classList.add("is-selected");
           }
@@ -142,12 +145,59 @@
 
       this.elements.board.replaceChildren(fragment);
       this.elements.board.classList.toggle("has-error", hasError);
+      this.renderCompletedHighlights(state, newestProductName);
 
       if (focusedCell) {
         this.elements.board.querySelector(
           `[data-row="${focusedCell.row}"][data-column="${focusedCell.column}"]`
         )?.focus({ preventScroll: true });
       }
+    }
+
+    renderCompletedHighlights(state, newestProductName) {
+      if (state.completedPaths.length === 0) {
+        return;
+      }
+
+      const boardBounds = this.elements.board.getBoundingClientRect();
+      const highlightLayer = document.createElementNS(SVG_NAMESPACE, "svg");
+      highlightLayer.classList.add("highlight-layer");
+      highlightLayer.setAttribute("viewBox", `0 0 ${boardBounds.width} ${boardBounds.height}`);
+      highlightLayer.setAttribute("aria-hidden", "true");
+
+      state.completedPaths.forEach((completed, foundIndex) => {
+        const start = completed.path[0];
+        const end = completed.path[completed.path.length - 1];
+        const startElement = this.elements.board.querySelector(
+          `[data-row="${start.row}"][data-column="${start.column}"]`
+        );
+        const endElement = this.elements.board.querySelector(
+          `[data-row="${end.row}"][data-column="${end.column}"]`
+        );
+
+        if (!startElement || !endElement) {
+          return;
+        }
+
+        const startBounds = startElement.getBoundingClientRect();
+        const endBounds = endElement.getBoundingClientRect();
+        const line = document.createElementNS(SVG_NAMESPACE, "line");
+        const color = HIGHLIGHT_COLORS[foundIndex % HIGHLIGHT_COLORS.length];
+        const bandWidth = Math.min(startBounds.width, startBounds.height) * 0.5;
+
+        line.classList.add("word-highlight", `word-highlight-${color}`);
+        if (completed.productName === newestProductName) {
+          line.classList.add("is-new");
+        }
+        line.setAttribute("x1", startBounds.left + startBounds.width / 2 - boardBounds.left);
+        line.setAttribute("y1", startBounds.top + startBounds.height / 2 - boardBounds.top);
+        line.setAttribute("x2", endBounds.left + endBounds.width / 2 - boardBounds.left);
+        line.setAttribute("y2", endBounds.top + endBounds.height / 2 - boardBounds.top);
+        line.setAttribute("stroke-width", bandWidth);
+        highlightLayer.appendChild(line);
+      });
+
+      this.elements.board.appendChild(highlightLayer);
     }
 
     renderSelection(state) {

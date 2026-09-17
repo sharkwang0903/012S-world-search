@@ -12,6 +12,10 @@
   --selected-line: #8fb8c0;
   --found: #f3e9ad;
   --found-line: #d8c977;
+  --marker-yellow: rgb(232 210 91 / 54%);
+  --marker-green: rgb(131 187 133 / 48%);
+  --marker-blue: rgb(112 174 200 / 46%);
+  --marker-red: rgb(220 133 138 / 44%);
   --error: #d9a39a;
   --shadow: 0 22px 60px rgb(42 52 49 / 8%);
   --radius-lg: 28px;
@@ -317,6 +321,7 @@ h2 {
 }
 
 .board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 7px;
@@ -326,9 +331,12 @@ h2 {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
+  isolation: isolate;
+  overflow: hidden;
 }
 
 .cell {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
@@ -344,12 +352,11 @@ h2 {
   font-size: clamp(1.2rem, 4vw, 1.85rem);
   font-weight: 700;
   line-height: 1;
-  transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease, box-shadow 130ms ease;
+  transition: background-color 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
 }
 
 .cell:hover {
   border-color: #aeb8b4;
-  transform: translateY(-1px);
 }
 
 .cell.is-selected {
@@ -358,19 +365,46 @@ h2 {
   box-shadow: inset 0 0 0 1px rgb(143 184 192 / 25%);
 }
 
-.cell.is-found {
-  background:
-    linear-gradient(177deg, transparent 12%, rgb(243 233 173 / 80%) 13% 86%, transparent 87%),
-    var(--paper);
-  border-color: var(--found-line);
+.cell-letter {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
 }
 
-.cell.is-found.is-selected {
-  background:
-    linear-gradient(rgb(220 236 239 / 74%), rgb(220 236 239 / 74%)),
-    linear-gradient(177deg, transparent 12%, rgb(243 233 173 / 80%) 13% 86%, transparent 87%),
-    var(--paper);
-  border-color: var(--selected-line);
+.highlight-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.word-highlight {
+  fill: none;
+  stroke-linecap: round;
+  mix-blend-mode: multiply;
+}
+
+.word-highlight-yellow {
+  stroke: var(--marker-yellow);
+}
+
+.word-highlight-green {
+  stroke: var(--marker-green);
+}
+
+.word-highlight-blue {
+  stroke: var(--marker-blue);
+}
+
+.word-highlight-red {
+  stroke: var(--marker-red);
+}
+
+.word-highlight.is-new {
+  animation: marker-reveal 300ms ease both;
 }
 
 .cell.is-error {
@@ -531,6 +565,11 @@ h2 {
 @keyframes reveal {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marker-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media (max-width: 760px) {

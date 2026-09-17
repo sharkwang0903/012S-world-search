@@ -17,10 +17,6 @@
     return result;
   }
 
-  function cellKey(row, column) {
-    return `${row},${column}`;
-  }
-
   class BoardGenerator {
     constructor(size = 5) {
       this.size = size;
@@ -83,41 +79,24 @@
       const candidates = [];
 
       for (const start of starts) {
-        if (!this.cellCanHold(grid, start.row, start.column, word[0])) {
-          continue;
-        }
+        for (const [rowDirection, columnDirection] of shuffle(DIRECTIONS)) {
+          const path = Array.from({ length: word.length }, (_, letterIndex) => ({
+            row: start.row + letterIndex * rowDirection,
+            column: start.column + letterIndex * columnDirection
+          }));
 
-        this.walkWord(word, 1, start, [start], new Set([cellKey(start.row, start.column)]), grid, candidates);
+          const isValidPath = path.every((cell, letterIndex) => (
+            this.isInside(cell.row, cell.column) &&
+            this.cellCanHold(grid, cell.row, cell.column, word[letterIndex])
+          ));
+
+          if (isValidPath) {
+            candidates.push(path);
+          }
+        }
       }
 
       return shuffle(candidates);
-    }
-
-    walkWord(word, letterIndex, current, path, usedCells, grid, candidates) {
-      if (letterIndex === word.length) {
-        candidates.push(path.map((cell) => ({ ...cell })));
-        return;
-      }
-
-      for (const [rowOffset, columnOffset] of shuffle(DIRECTIONS)) {
-        const row = current.row + rowOffset;
-        const column = current.column + columnOffset;
-        const key = cellKey(row, column);
-
-        if (
-          !this.isInside(row, column) ||
-          usedCells.has(key) ||
-          !this.cellCanHold(grid, row, column, word[letterIndex])
-        ) {
-          continue;
-        }
-
-        usedCells.add(key);
-        path.push({ row, column });
-        this.walkWord(word, letterIndex + 1, { row, column }, path, usedCells, grid, candidates);
-        path.pop();
-        usedCells.delete(key);
-      }
     }
 
     cellCanHold(grid, row, column, letter) {
