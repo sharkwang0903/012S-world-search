@@ -6,6 +6,31 @@
     PLAYING: "PLAYING",
     COMPLETED: "COMPLETED"
   });
+  const HIGHLIGHT_COLORS = Object.freeze(["yellow", "green", "blue", "red"]);
+  const GAME_MODES = Object.freeze({
+    easy: Object.freeze({
+      key: "easy",
+      label: "簡單模式",
+      englishLabel: "SIMPLE MODE",
+      boardSize: 5,
+      targetCount: 4
+    }),
+    medium: Object.freeze({
+      key: "medium",
+      label: "中等模式",
+      englishLabel: "MEDIUM MODE",
+      boardSize: 8,
+      targetCount: 8
+    }),
+    hard: Object.freeze({
+      key: "hard",
+      label: "困難模式",
+      englishLabel: "HARD MODE",
+      boardSize: 10,
+      targetCount: 12
+    })
+  });
+  const DEFAULT_MODE = "easy";
 
   function shuffle(items) {
     const result = [...items];
@@ -34,15 +59,20 @@
       this.listeners.forEach((listener) => listener(this, event));
     }
 
-    startGame() {
-      this.mode = "easy";
-      this.roundProducts = shuffle(this.products).slice(0, 4);
-      const generatedBoard = this.boardGenerator.generate(this.roundProducts);
+    startGame(modeKey = this.currentMode) {
+      this.currentMode = Object.hasOwn(GAME_MODES, modeKey) ? modeKey : DEFAULT_MODE;
+      this.mode = this.currentMode;
+      const modeConfig = this.getCurrentModeConfig();
+      this.boardSize = modeConfig.boardSize;
+      this.targetCount = modeConfig.targetCount;
+      this.roundProducts = shuffle(this.products).slice(0, this.targetCount);
+      const generatedBoard = this.boardGenerator.generate(this.roundProducts, this.boardSize);
 
       this.board = generatedBoard.grid;
       this.productPaths = generatedBoard.paths;
       this.foundProducts = new Set();
       this.foundCells = new Set();
+      this.productHighlightMap = new Map();
       this.completedPaths = [];
       this.selection = [];
       this.selectionText = "";
@@ -53,7 +83,7 @@
     }
 
     playAgain() {
-      this.startGame();
+      this.startGame(this.currentMode);
     }
 
     goHome() {
@@ -63,17 +93,26 @@
 
     resetToHome() {
       this.state = GAME_STATES.HOME;
-      this.mode = "easy";
+      this.currentMode = DEFAULT_MODE;
+      this.mode = this.currentMode;
+      const modeConfig = this.getCurrentModeConfig();
+      this.boardSize = modeConfig.boardSize;
+      this.targetCount = modeConfig.targetCount;
       this.roundProducts = [];
       this.board = [];
       this.productPaths = {};
       this.foundProducts = new Set();
       this.foundCells = new Set();
+      this.productHighlightMap = new Map();
       this.completedPaths = [];
       this.selection = [];
       this.selectionText = "";
       this.selectionDirection = null;
       this.inputLocked = false;
+    }
+
+    getCurrentModeConfig() {
+      return GAME_MODES[this.currentMode];
     }
 
     selectCell(row, column) {
@@ -157,7 +196,11 @@
 
     completeProduct(product) {
       const completedPath = this.selection.map((cell) => ({ ...cell }));
+      const highlightColor = HIGHLIGHT_COLORS[
+        this.productHighlightMap.size % HIGHLIGHT_COLORS.length
+      ];
       this.foundProducts.add(product.name);
+      this.productHighlightMap.set(product.name, highlightColor);
       completedPath.forEach((cell) => this.foundCells.add(this.cellKey(cell)));
       this.completedPaths.push({
         productName: product.name,
@@ -172,7 +215,7 @@
         this.state = GAME_STATES.COMPLETED;
       }
 
-      this.notify({ type: "product-found", product, completedPath, isComplete });
+      this.notify({ type: "product-found", product, completedPath, highlightColor, isComplete });
     }
 
     areAdjacent(first, second) {
@@ -191,5 +234,6 @@
   }
 
   window.GAME_STATES = GAME_STATES;
+  window.GAME_MODES = GAME_MODES;
   window.WorldSearchGame = WorldSearchGame;
 })();

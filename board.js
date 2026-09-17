@@ -22,7 +22,13 @@
       this.size = size;
     }
 
-    generate(products) {
+    generate(products, boardSize = this.size) {
+      if (!Number.isInteger(boardSize) || boardSize < 1) {
+        throw new Error("棋盤尺寸必須是大於 0 的整數。");
+      }
+
+      this.size = boardSize;
+
       for (let attempt = 0; attempt < 200; attempt += 1) {
         const grid = Array.from({ length: this.size }, () => Array(this.size).fill(null));
         const paths = {};

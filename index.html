@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="012S World Search：在 5 × 5 字母棋盤中尋找隱藏的產品名稱。"
+      content="012S World Search：選擇 5 × 5、8 × 8 或 10 × 10 棋盤，尋找隱藏的產品名稱。"
     />
     <meta name="theme-color" content="#f4f2ec" />
     <link
@@ -34,14 +34,7 @@
 
           <fieldset class="mode-picker">
             <legend>選擇遊戲模式</legend>
-            <label class="mode-card">
-              <input type="radio" name="mode" value="easy" checked />
-              <span class="mode-check" aria-hidden="true"></span>
-              <span class="mode-copy">
-                <strong>簡單模式</strong>
-                <span>5 × 5 字母棋盤 · 每局 4 個產品 · 不限時間</span>
-              </span>
-            </label>
+            <div id="mode-options" class="mode-options"></div>
           </fieldset>
 
           <button id="start-button" class="button button-primary" type="button">
@@ -59,7 +52,7 @@
       >
         <header class="game-header">
           <div>
-            <p class="eyebrow">Simple mode · 5 × 5</p>
+            <p id="game-mode-label" class="eyebrow"></p>
             <h1 id="game-title">012S World Search</h1>
           </div>
           <button id="playing-home-button" class="button button-quiet" type="button">
@@ -80,16 +73,18 @@
               id="board"
               class="board"
               role="grid"
-              aria-label="5 乘 5 字母棋盤"
+              aria-label="字母棋盤"
             ></div>
             <p id="game-feedback" class="sr-only" aria-live="assertive"></p>
           </div>
 
           <aside class="hint-panel" aria-labelledby="hint-title">
             <div class="hint-heading">
-              <div>
-                <p class="eyebrow">Your list</p>
-                <h2 id="hint-title">Products to Find</h2>
+              <div class="hint-copy">
+                <h2 id="hint-title">請尋找以下產品</h2>
+                <p id="product-link-hint" class="product-link-hint" hidden>
+                  若想了解此產品是什麼，歡迎點選連結
+                </p>
               </div>
               <span id="remaining-count" class="remaining-count" aria-label="剩餘產品數量"></span>
             </div>
