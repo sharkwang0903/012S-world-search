@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="012S World Search：在 5 × 5 字母棋盤中尋找隱藏的產品名稱。"
+    />
+    <meta name="theme-color" content="#f4f2ec" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f555d'/%3E%3Cpath d='M15 18h14v14H15zm20 0h14v14H35zM15 38h14v14H15z' fill='%23f4f2ec'/%3E%3Cpath d='M38 41h11v11H38z' fill='%23eadf9d'/%3E%3C/svg%3E"
+    />
+    <title>012S World Search</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="products.js" defer></script>
+    <script src="board.js" defer></script>
+    <script src="game.js" defer></script>
+    <script src="ui.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="home-screen" class="screen home-screen" aria-labelledby="home-title">
+        <div class="home-card">
+          <p class="eyebrow">A quiet word-finding game</p>
+          <h1 id="home-title">012S World Search</h1>
+          <p class="home-subtitle">Find the hidden products.</p>
+          <p class="home-intro">
+            在字母棋盤中尋找隱藏的 012S 產品名稱。<br />
+            依序點擊相鄰的英文字母，找出提示區中的所有產品。
+          </p>
+
+          <fieldset class="mode-picker">
+            <legend>選擇遊戲模式</legend>
+            <label class="mode-card">
+              <input type="radio" name="mode" value="easy" checked />
+              <span class="mode-check" aria-hidden="true"></span>
+              <span class="mode-copy">
+                <strong>簡單模式</strong>
+                <span>5 × 5 字母棋盤 · 每局 4 個產品 · 不限時間</span>
+              </span>
+            </label>
+          </fieldset>
+
+          <button id="start-button" class="button button-primary" type="button">
+            開始遊戲
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="game-screen"
+        class="screen game-screen"
+        aria-labelledby="game-title"
+        hidden
+      >
+        <header class="game-header">
+          <div>
+            <p class="eyebrow">Simple mode · 5 × 5</p>
+            <h1 id="game-title">012S World Search</h1>
+          </div>
+          <button id="playing-home-button" class="button button-quiet" type="button">
+            回到首頁
+          </button>
+        </header>
+
+        <p class="instruction">依序點擊八方向相鄰的字母，拼出右側的產品名稱。</p>
+
+        <div class="selection-readout" aria-live="polite" aria-atomic="true">
+          <span>目前選取</span>
+          <strong id="current-selection">—</strong>
+        </div>
+
+        <div class="game-layout">
+          <div class="board-wrap">
+            <div
+              id="board"
+              class="board"
+              role="grid"
+              aria-label="5 乘 5 字母棋盤"
+            ></div>
+            <p id="game-feedback" class="sr-only" aria-live="assertive"></p>
+          </div>
+
+          <aside class="hint-panel" aria-labelledby="hint-title">
+            <div class="hint-heading">
+              <div>
+                <p class="eyebrow">Your list</p>
+                <h2 id="hint-title">Products to Find</h2>
+              </div>
+              <span id="remaining-count" class="remaining-count" aria-label="剩餘產品數量"></span>
+            </div>
+            <ul id="product-list" class="product-list"></ul>
+          </aside>
+        </div>
+
+        <section id="completion-panel" class="completion-panel" hidden aria-labelledby="completion-title">
+          <p class="completion-mark" aria-hidden="true">✓</p>
+          <div class="completion-copy">
+            <p class="eyebrow">Round complete</p>
+            <h2 id="completion-title">全部找到！</h2>
+            <p>你成功找到了本局所有產品。</p>
+          </div>
+          <div class="completion-actions">
+            <button id="replay-button" class="button button-primary" type="button">再玩一次</button>
+            <button id="completed-home-button" class="button button-secondary" type="button">
+              回到首頁
+            </button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
